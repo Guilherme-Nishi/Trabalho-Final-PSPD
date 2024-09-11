@@ -4,8 +4,6 @@
 #include <omp.h>
 
 #define ind2d(i,j) (i)*(tam+2)+j
-#define POWMIN 2
-#define POWMAX 10
 
 double wall_time(void) {
   struct timeval tv;
@@ -75,13 +73,16 @@ int Correto(int* tabul, int tam){
           tabul[ind2d(tam  ,tam-1)] && tabul[ind2d(tam  ,tam  )]);
 } /* fim-Correto */
 
-int main(void) {
+int main(int argc, char** argv) {
   omp_set_num_threads(16);
   int pow, i, tam, *tabulIn, *tabulOut;
   char msg[9];
   double t0, t1, t2, t3;
+  int powmin = atoi(argv[1]);
+  int powmax = atoi(argv[2]);
+
   // para todos os tamanhos do tabuleiro
-  for (pow=POWMIN; pow<=POWMAX; pow++) {
+  for (pow=powmin; pow<=powmax; pow++) {
     tam = 1 << pow;
     // aloca e inicializa tabuleiros
      t0 = wall_time();
@@ -89,16 +90,16 @@ int main(void) {
     tabulOut = (int *) malloc ((tam+2)*(tam+2)*sizeof(int));
     InitTabul(tabulIn, tabulOut, tam);
     t1 = wall_time();
-    for (i=0; i<2*(tam-3); i++) {
+    for (i=0; i<10; i++) {
       UmaVida(tabulIn, tabulOut, tam);
       UmaVida(tabulOut, tabulIn, tam);
     } /* fim-for */
     t2 = wall_time();
 
     if (Correto(tabulIn, tam))
-      printf("**RESULTADO CORRETO**\n");
+      printf("**OpenMP - RESULTADO CORRETO**\n");
     else
-      printf("**RESULTADO ERRADO**\n");
+      printf("**OpenMP - RESULTADO ERRADO**\n");
     t3 = wall_time();
     printf("tam=%d; tempos: init=%7.7f, comp=%7.7f, fim=%7.7f, tot=%7.7f \n",
            tam, t1-t0, t2-t1, t3-t2, t3-t0);

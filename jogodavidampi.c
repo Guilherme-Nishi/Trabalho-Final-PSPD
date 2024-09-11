@@ -4,8 +4,6 @@
 #include <mpi.h>
 
 #define ind2d(i,j) ((i)*(tam+2)+(j))
-#define POWMIN 2
-#define POWMAX 12
 
 double wall_time(void) {
     struct timeval tv;
@@ -76,7 +74,10 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    for (pow = POWMIN; pow <= POWMAX; pow++) {
+    int powmin = atoi(argv[1]);
+    int powmax = atoi(argv[2]);
+
+    for (pow = powmin; pow <= powmax; pow++) {
         tam = 1 << pow;
 
         t0 = wall_time();
@@ -103,9 +104,9 @@ int main(int argc, char** argv) {
         t2 = wall_time();
         if (rank == 0) {
             if (Correto(tabulIn, tam))
-                printf("**RESULTADO CORRETO**\n");
+                printf("**MPI - RESULTADO CORRETO**\n");
             else
-                printf("**RESULTADO ERRADO**\n");
+                printf("**MPI - RESULTADO ERRADO**\n");
             t3 = wall_time();
             printf("tam=%d; tempos: init=%7.7f, comp=%7.7f, fim=%7.7f, tot=%7.7f \n",
                       tam, t1-t0, t2-t1, t3-t2, t3-t0);
