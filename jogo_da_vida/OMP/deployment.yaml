@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jogodavida-omp-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: jogodavida-omp
+  template:
+    metadata:
+      labels:
+        app: jogodavida-omp
+    spec:
+      containers:
+      - name: jogodavida-omp
+        image: carlacangussu/jogodavida:latest
+        command: ["./OMP/jogodavidaomp"]
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      - name: metrics-server
+        image: k8s.gcr.io/metrics-server/metrics-server:v0.3.7
+        args:
+          - --kubelet-insecure-tls
+          - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
+
+

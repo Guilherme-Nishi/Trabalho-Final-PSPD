@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-pod
+  labels:
+    app: spark
+spec:
+  containers:
+    - name: spark-container
+      image: imagem-spark:latest
+      imagePullPolicy: Never
+      ports:
+        - containerPort: 4040  # Porta da interface Web do Spark
+      env:
+        - name: SPARK_MASTER
+          value: "local[2]"  # Número de núcleos (pode ser ajustado)            
