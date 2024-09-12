@@ -13,8 +13,8 @@ RUN apt-get update && \
 WORKDIR /usr/src/jogo_da_vida
 
 # Copiar os códigos do OpenMP e MPI para o diretório de trabalho do container
-COPY ./jogo_da_vida/OMP/jogodavidaomp.c ./OMP/
-COPY ./jogo_da_vida/MPI/jogodavidampi.c ./MPI/
+COPY ./OMP/jogodavidaomp.c ./OMP/
+COPY ./MPI/jogodavidampi.c ./MPI/
 
 # Compilar o código OpenMP
 RUN gcc -fopenmp -o ./OMP/jogodavidaomp ./OMP/jogodavidaomp.c

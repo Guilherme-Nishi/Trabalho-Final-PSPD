@@ -2,10 +2,52 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <mpi.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define BUFFER_SIZE 1024
+
+// Função para receber parâmetros do servidor de sockets
+void receive_params_from_socket(int *powmin, int *powmax) {
+    int sock;
+    struct sockaddr_in server;
+    char buffer[BUFFER_SIZE];
+
+    // Configurar o socket
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        perror("Erro ao criar socket");
+        exit(EXIT_FAILURE);
+    }
+    server.sin_addr.s_addr = inet_addr("socket-server-service");  // Nome do serviço do servidor de sockets
+    server.sin_family = AF_INET;
+    server.sin_port = htons(8080);  // Porta do servidor de sockets
+
+    // Conectar ao servidor de sockets
+    if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
+        perror("Falha ao conectar ao servidor de sockets");
+        exit(EXIT_FAILURE);
+    }
+
+    // Receber a mensagem do servidor de sockets
+    int read_size = recv(sock, buffer, sizeof(buffer), 0);
+    if (read_size < 0) {
+        perror("Falha ao receber dados");
+        exit(EXIT_FAILURE);
+    }
+
+    buffer[read_size] = '\0';  // Garantir que a string está terminada
+
+    // Parse dos parâmetros POWMIN e POWMAX
+    if (sscanf(buffer, "%d %d", powmin, powmax) != 2) {
+        fprintf(stderr, "Dados inválidos recebidos\n");
+        exit(EXIT_FAILURE);
+    }
+
+    close(sock);
+}
 
 #define ind2d(i,j) ((i)*(tam+2)+(j))
-#define POWMIN 2
-#define POWMAX 12
 
 double wall_time(void) {
     struct timeval tv;
@@ -25,8 +67,6 @@ void UmaVida(int* tabulIn, int* tabulOut, int tam, int start, int end) {
             if (tabulIn[ind2d(i,j)] && vizviv < 2)
                 tabulOut[ind2d(i,j)] = 0;
             else if (tabulIn[ind2d(i,j)] && vizviv > 3)
-                tabulOut[ind2d(i,j)] = 0;
-               else if (tabulIn[ind2d(i,j)] && vizviv > 3)
                 tabulOut[ind2d(i,j)] = 0;
             else if (!tabulIn[ind2d(i,j)] && vizviv == 3)
                 tabulOut[ind2d(i,j)] = 1;
@@ -53,8 +93,11 @@ void InitTabul(int* tabulIn, int* tabulOut, int tam) {
     for (ij = 0; ij < (tam+2)*(tam+2); ij++) {
         tabulIn[ij] = 0;
         tabulOut[ij] = 0;
-    } tabulIn[ind2d(1,2)] = 1; tabulIn[ind2d(2,3)] = 1;
-    tabulIn[ind2d(3,1)] = 1; tabulIn[ind2d(3,2)] = 1;
+    }
+    tabulIn[ind2d(1,2)] = 1; 
+    tabulIn[ind2d(2,3)] = 1;
+    tabulIn[ind2d(3,1)] = 1; 
+    tabulIn[ind2d(3,2)] = 1;
     tabulIn[ind2d(3,3)] = 1;
 }
 
@@ -68,7 +111,7 @@ int Correto(int* tabul, int tam) {
 }
 
 int main(int argc, char** argv) {
-    int pow, i, tam, *tabulIn, *tabulOut, rank, size, start, end;
+    int powmin, powmax, i, tam, *tabulIn, *tabulOut, rank, size, start, end;
     char msg[9];
     double t0, t1, t2, t3;
 
@@ -76,12 +119,15 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    for (pow = POWMIN; pow <= POWMAX; pow++) {
+    // Receber parâmetros do servidor de sockets
+    receive_params_from_socket(&powmin, &powmax);
+
+    for (int pow = powmin; pow <= powmax; pow++) {
         tam = 1 << pow;
 
         t0 = wall_time();
         tabulIn  = (int *) malloc ((tam+2)*(tam+2)*sizeof(int));
-         tabulOut = (int *) malloc ((tam+2)*(tam+2)*sizeof(int));
+        tabulOut = (int *) malloc ((tam+2)*(tam+2)*sizeof(int));
         InitTabul(tabulIn, tabulOut, tam);
         t1 = wall_time();
 

@@ -2,10 +2,51 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <omp.h>
+#include <unistd.h>
+#include <arpa/inet.h>
 
 #define ind2d(i,j) (i)*(tam+2)+j
-#define POWMIN 2
-#define POWMAX 10
+#define BUFFER_SIZE 1024
+
+// Função para receber parâmetros do servidor de sockets
+void receive_params_from_socket(int *powmin, int *powmax) {
+    int sock;
+    struct sockaddr_in server;
+    char buffer[BUFFER_SIZE];
+
+    // Configurar o socket
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock == -1) {
+        perror("Erro ao criar socket");
+        exit(EXIT_FAILURE);
+    }
+    server.sin_addr.s_addr = inet_addr("socket-server-service");  // Nome do serviço do servidor de sockets
+    server.sin_family = AF_INET;
+    server.sin_port = htons(8080);  // Porta do servidor de sockets
+
+    // Conectar ao servidor de sockets
+    if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
+        perror("Falha ao conectar ao servidor de sockets");
+        exit(EXIT_FAILURE);
+    }
+
+    // Receber a mensagem do servidor de sockets
+    int read_size = recv(sock, buffer, sizeof(buffer), 0);
+    if (read_size < 0) {
+        perror("Falha ao receber dados");
+        exit(EXIT_FAILURE);
+    }
+
+    buffer[read_size] = '\0';  // Garantir que a string está terminada
+
+    // Parse dos parâmetros POWMIN e POWMAX
+    if (sscanf(buffer, "%d %d", powmin, powmax) != 2) {
+        fprintf(stderr, "Dados inválidos recebidos\n");
+        exit(EXIT_FAILURE);
+    }
+
+    close(sock);
+}
 
 double wall_time(void) {
   struct timeval tv;
@@ -77,11 +118,15 @@ int Correto(int* tabul, int tam){
 
 int main(void) {
   omp_set_num_threads(16);
-  int pow, i, tam, *tabulIn, *tabulOut;
+  int powmin, powmax, pow, i, tam, *tabulIn, *tabulOut;
   char msg[9];
   double t0, t1, t2, t3;
+
+  // Receber parâmetros do servidor de sockets
+  receive_params_from_socket(&powmin, &powmax);
+
   // para todos os tamanhos do tabuleiro
-  for (pow=POWMIN; pow<=POWMAX; pow++) {
+  for (pow=powmin; pow<=powmax; pow++) {
     tam = 1 << pow;
     // aloca e inicializa tabuleiros
      t0 = wall_time();

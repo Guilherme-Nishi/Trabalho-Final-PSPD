@@ -1,21 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jogodavida-omp-deployment
+  name: socket-server-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: jogodavida-omp
+      app: socket-server
   template:
     metadata:
       labels:
-        app: jogodavida-omp
+        app: socket-server
     spec:
       containers:
-      - name: jogodavida-omp
-        image: karlacsf/jogodavida:latest
-        command: ["./OMP/jogodavidaomp"]
+      - name: socket-server
+        image: karlacsf/socket-server:latest 
+        ports:
+        - containerPort: 8080
         resources:
           requests:
             memory: "256Mi"
@@ -23,4 +24,3 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
-
