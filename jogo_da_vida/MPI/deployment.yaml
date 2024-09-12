@@ -21,15 +21,16 @@ spec:
           value: "1"
         - name: OMPI_ALLOW_RUN_AS_ROOT_CONFIRM
           value: "1"
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "200m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
       - name: metrics-server
         image: k8s.gcr.io/metrics-server/metrics-server:v0.3.7
         args:
           - --kubelet-insecure-tls
           - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
+
