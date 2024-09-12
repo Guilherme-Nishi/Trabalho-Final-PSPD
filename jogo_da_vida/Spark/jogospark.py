@@ -55,45 +55,40 @@ def Correto(tabul, tam):
             tabul[ind2d(tam, tam - 1, tam)] and tabul[ind2d(tam, tam, tam)])
 
 if __name__ == "__main__":
-    conf = SparkConf().setAppName("GameOfLife").setMaster("local[3]")
+    conf = SparkConf().setAppName("GameOfLife").setMaster("k8s://https://127.0.0.1:54551")
     sc = SparkContext(conf=conf)
 
-    while(True):
-        
-        POWMIN = int(input("Digite o valor mínimo de potência de 2: "))
-        POWMAX = int(input("Digite o valor máximo de potência de 2: "))
-        
-        if POWMIN and POWMAX != 0:
-            for pow in range(POWMIN, POWMAX + 1):
-                tam = 1 << pow
-                
-                t0 = wall_time()
-                tabulIn = np.zeros((tam + 2) * (tam + 2), dtype=int)
-                tabulOut = np.zeros((tam + 2) * (tam + 2), dtype=int)
-                InitTabul(tabulIn, tabulOut, tam)
-                t1 = wall_time()
+    for pow in range(POWMIN, POWMAX + 1):
+        tam = 1 << pow
 
-                stable = False
-                iteration = 0
-                while iteration < MAX_ITER and not stable:
-                    tabulOut = UmaVidaParallel(tabulIn, tam)
-                    new_tabulIn = UmaVidaParallel(tabulOut, tam)
+        t0 = wall_time()
+        tabulIn = np.zeros((tam + 2) * (tam + 2), dtype=int)
+        tabulOut = np.zeros((tam + 2) * (tam + 2), dtype=int)
+        InitTabul(tabulIn, tabulOut, tam)
+        t1 = wall_time()
 
-                    # Verificar se o tabuleiro não mudou (estabilizou)
-                    if np.array_equal(tabulIn, new_tabulIn):
-                        stable = True
+        stable = False
+        iteration = 0
+        while iteration < MAX_ITER and not stable:
+            tabulOut = UmaVidaParallel(tabulIn, tam)
+            new_tabulIn = UmaVidaParallel(tabulOut, tam)
 
-                    tabulIn = new_tabulIn  # Atualiza o tabuleiro de entrada para a próxima iteração
-                    iteration += 1
-                
-                t2 = wall_time()
-                
-                if Correto(tabulIn, tam):
-                    print("**Ok, RESULTADO CORRETO**")
-                else:
-                    print("**Nok, RESULTADO ERRADO**")
-                
-                t3 = wall_time()
-                print(f"tam={tam}; tempos: init={t1 - t0:.7f}, comp={t2 - t1:.7f}, fim={t3 - t2:.7f}, tot={t3 - t0:.7f}")
+            # Verificar se o tabuleiro não mudou (estabilizou)
+            if np.array_equal(tabulIn, new_tabulIn):
+                stable = True
+
+            tabulIn = new_tabulIn  # Atualiza o tabuleiro de entrada para a próxima iteração
+            iteration += 1
+
+        t2 = wall_time()
+
+        if Correto(tabulIn, tam):
+            print("**Ok, RESULTADO CORRETO**")
+        else:
+            print("**Nok, RESULTADO ERRADO**")
+
+        t3 = wall_time()
+        print(f"tam={tam}; tempos: init={t1 - t0:.7f}, comp={t2 - t1:.7f}, fim={t3 - t2:.7f}, tot={t3 - t0:.7f}")
+
     
     sc.stop()
