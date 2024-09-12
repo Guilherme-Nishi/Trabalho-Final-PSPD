@@ -2,8 +2,8 @@ from pyspark import SparkContext, SparkConf
 import numpy as np
 import time
 
-# POWMIN = 3
-# POWMAX = 4
+POWMIN = 3
+POWMAX = 4
 MAX_ITER = 100  # Defina um número máximo de iterações para evitar loop infinito
 
 def ind2d(i, j, tam):
