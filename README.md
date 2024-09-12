@@ -35,3 +35,11 @@ kubectl apply -f MPI/hpa.yaml
 
 kubectl apply -f OMP/deployment.yaml
 kubectl apply -f OMP/hpa.yaml
+
+Obter as urls
+
+minikube service grafana
+minikube service elasticsearch
+
+kubectl port-forward svc/grafana 3000:3000 
+kubectl port-forward svc/elasticsearch 9200:9200
