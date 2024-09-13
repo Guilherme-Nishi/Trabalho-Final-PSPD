@@ -33,4 +33,4 @@ WORKDIR /opt/spark-apps
 COPY jogospark.py .
 
 # Set the default command to run the application
-CMD ["spark-submit", "jogospark.py"]
+CMD ["spark-submit","jogospark.py"]
